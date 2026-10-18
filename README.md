@@ -13,6 +13,7 @@ El código base está dividido en tres módulos independientes dependiendo de la
 *   🏁 **PROMETHEUS_RACE:** Modo de competición. Elimina cualquier filtro de suavizado para ofrecer una respuesta 1:1 ultrarrápida entre los gatillos del mando y la potencia de los motores. Diseñado para maximizar la agilidad y velocidad en pista.
 *   📡 **PROMETHEUS_SENSORS:** Modo de exploración. Integra lectura del entorno mediante sensores (Magnético y sensor de color I2C TCS34725). Incluye rutinas de telemetría por Bluetooth Serial para monitorizar datos del coche en tiempo real.
 *   🦾 **PROMETHEUS_ARM:** Modo de manipulación. Diseñado para controlar cargas pesadas (Brazo robótico, Garra y Compuerta). Aísla las señales PWM de tracción de las de los servos para garantizar la máxima estabilidad eléctrica durante tareas de fuerza bruta, e incluye macros automáticas (como secuencias de descarga).
+*   🖥️ **[Taskforce GCS (Ground Control Station)](Taskforce_GCS/):** Estación de control en tierra avanzada en **C# / .NET 8 (WPF)** con telemetría en tiempo real, HUD táctico sobre transmisión de vídeo MJPEG y control directo mediante mando de Xbox Series.
 
 ## ⚙️ Hardware Principal Soportado
 *   Placa base: **ESP32**

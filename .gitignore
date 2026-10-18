@@ -1,0 +1,12 @@
+# Build and Temporary Files
+bin/
+obj/
+*.exe
+*.dll
+*.pdb
+*.cache
+*.user
+*.suo
+*.ide/
+.vs/
+*.dotx
