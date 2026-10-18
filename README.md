@@ -19,11 +19,11 @@ Este repositorio contiene el ecosistema oficial para el control del UGV radiocon
 * 🏁 **`PROMETHEUS_RACE.ino`:** Modo competición con respuesta 1:1 ultrarrápida sin filtros.
 ---
 ## ⚙️ Componentes de Hardware Utilizados
-* **Microcontrolador principal:** ESP32 NodeMCU-32S
+* **Microcontrolador principal:** ESP32
 * **Cámara de a bordo (Rama Taskforce):** ESP32-CAM AI-Thinker
-* **Motores de tracción:** 2x JGA16 con caja reductora y piñonería de acero
-* **Driver de potencia:** ZK-5AD (MOSFET dual)
-* **Servo de dirección:** MG90S con piñonería metálica (Geometría Ackermann 3D)
+* **Motores de tracción:** 2x JGA16 de 6V
+* **Driver de potencia:** ZK-5AD
+* **Servo de dirección:** MG90S
 * **Alimentación de tracción:** Batería LiPo 7.4V (2S)
 * **Alimentación lógica:** Shield de baterías 18650 (5V regulados independientes)
 * **Periférico de control:** Mando inalámbrico original Xbox Series X/S o Xbox One
