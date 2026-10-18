@@ -3,7 +3,9 @@
 *Estudiante del Grado en Ingeniería Mecánica — UPV Campus d'Alcoi (EPSA) | Exalumno CEU Jesús-María*
 ## 📖 Descripción del Proyecto
 Este repositorio contiene el código fuente oficial para el sistema de control del rover radiocontrol **Prometheus (Versión MK-IV / ONU)** y su ecosistema táctico **Ignition (Taskforce)**. El sistema utiliza un microcontrolador **ESP32** para conectarse de forma nativa a un mando inalámbrico de **Xbox Series X/S o Xbox One** mediante Bluetooth, ofreciendo un control de altísima precisión tanto en operaciones directas sobre el terreno como a través de la estación en tierra.
+
 👉 **[Ver modelo 3D interactivo y piezas en Onshape](https://cad.onshape.com/documents/e0e2690dbaa761d20fdeb4b2/w/a619ad74b4e23a78b4f9217a/e/e99fb4568552d454a36312e6)**
+
 El código base está dividido en módulos independientes dependiendo de la misión a realizar:
 * 🏁 **PROMETHEUS RACE (Versión MK-IV):** Modo de competición y respuesta rápida. Elimina cualquier filtro de suavizado para ofrecer una respuesta 1:1 ultrarrápida entre los gatillos del mando y la potencia de los motores. Diseñado para maximizar la agilidad y velocidad en pista.
 * 📡 **PROMETHEUS SENSORS (Versión MK-IV ONU):** Modo de exploración y salvamento. Integra lectura del entorno mediante sensores (Magnético y sensor de color I2C TCS34725). Incluye rutinas de telemetría por Bluetooth Serial para monitorizar datos del coche en tiempo real.
