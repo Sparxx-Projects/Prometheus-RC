@@ -1,83 +1,66 @@
-# 🛠️ Prometheus MK-IV & Taskforce: Filosofía de Diseño y Arquitectura Hardware
+# 🛠️ Prometheus MK-IV: Filosofía de Diseño y Arquitectura Hardware
 
-**Autor:** Ernesto Torregrosa Palacio  
+**Creador:** Ernesto Torregrosa Palacio  
 *Estudiante del Grado en Ingeniería Mecánica — UPV Campus d'Alcoi (EPSA) | Exalumno CEU Jesús-María*
 
-Este documento detalla las decisiones técnicas de ingeniería detrás de la construcción física, cinemática y electrónica del rover **Prometheus MK-IV (Versión ONU / Salvamento)** y su evolución hacia el ecosistema táctico **Taskforce (Ignition)**.
+Este documento detalla las decisiones técnicas de ingeniería detrás de la construcción física y electrónica del coche Prometheus MK-IV.
 
 ---
 
-## 1. Arquitectura Electrónica: El Sistema de Doble Alimentación Aislada
+## 1. Arquitectura Electrónica: El Sistema de Doble Batería
 
-Una de las decisiones más críticas en el diseño de Prometheus ha sido la implementación de un sistema de **doble alimentación**. Aislar el circuito de tracción pesada es fundamental para evitar caídas de tensión bruscas (*brownouts*) que reiniciarían el microcontrolador y cortarían el enlace inalámbrico (Bluetooth o Wi-Fi UDP) en plena operación.
+Una de las decisiones más críticas en el diseño de Prometheus ha sido la implementación de un sistema de **doble alimentación**. Aislar el circuito de tracción pesada es fundamental para evitar caídas de tensión bruscas que reiniciarían el ESP32 y cortarían la conexión Bluetooth en plena misión.
 
-### La Solución Implementada:
+**La Solución Implementada:**
 
-* **Batería A (Lógica, Sensórica y Servomotores):** 
-  * **Especificaciones:** Pack de celdas de litio **18650** con una capacidad total de **6600 mAh**. Su voltaje base (~3.7V nominal) atraviesa un módulo elevador regulado (*Boost/Step-up*) que garantiza una entrega fija, continua y limpia de **5V y hasta 3A**.
-  * **Función:** Alimenta de forma centralizada al microcontrolador **ESP32 NodeMCU-32S**, a la sensórica I2C/digital y a los servomotores.
-  * **Desglose de Consumos:** 
-    * *Microcontrolador (ESP32):* Demanda un flujo constante de entre **150 mA y 240 mA** debido al procesamiento dual-core (240 MHz) y la transmisión inalámbrica ininterrumpida (Bluetooth BLE o Wi-Fi UDP).
-    * *Cámara ESP32-CAM (en versión Taskforce):* Consumo medio de **180 mA a 260 mA** durante la codificación y transmisión activa de streaming MJPEG.
-    * *Sensórica (TCS34725 + A3144):* Consumo residual inferior a **15 mA** con el LED de iluminación del sensor de color encendido.
-    * *Servomotores (MG90S piñonería metálica):* Consumo altamente dinámico. En movimiento suave, el servo demanda entre **500 mA y 800 mA**, pero ante esfuerzos máximos o bloqueo mecánico (*Stall*) puede exigir picos de **1.5A a 2.5A**. La versión de carreras/salvamento alimenta 1 servo de dirección Ackermann, mientras que la versión con brazo robótico y compuerta gestiona hasta 4 actuadores simultáneos.
-  * **Autonomía Calculada y Verificada:** Gracias a la gran reserva de 6600 mAh y al aislamiento de la línea, el sistema proporciona unas sólidas **3 horas de autonomía operativa ininterrumpida**, garantizando que la lógica jamás sufra reinicios por estrés mecánico.
+- **Batería A (Lógica y Servomotores):** 
+  - **Especificaciones:** Pack de celdas **18650** con una capacidad de **6600mAh**. Su voltaje base (~3.5V) atraviesa un módulo elevador (*Boost/Step-up*) que garantiza una entrega de **5V** fijos, estables y limpios.
+  - **Función:** Alimenta de forma centralizada al microcontrolador principal (**ESP32**), a la sensórica y a los servomotores.
+  - **Desglose de Consumos:** 
+    - *ESP32:* Exige un flujo constante de entre **150mA y 240mA** debido al procesamiento y la transmisión inalámbrica Bluetooth ininterrumpida.
+    - *Sensores:* Consumo residual inferior a **10mA**.
+    - *Servomotores:* El consumo es altamente dinámico. En movimiento, un servo estándar demanda entre **500mA y 800mA**, pero bajo un esfuerzo máximo o atasco (*Stall*) puede chupar picos de **1.5A a 2.5A** de golpe. Dependiendo de la configuración del vehículo, el consumo se multiplica: la versión de carreras solo alimenta un servo (dirección), mientras que la versión pesada activa hasta 4 servomotores simultáneamente.
+  - **Cálculo Realista de Autonomía:** Teniendo en cuenta todo este estrés combinado y el salto de voltaje del regulador, la reserva de 6600mAh estabiliza el sistema y proporciona unas reales y sólidas **3 horas de autonomía** de trabajo intenso ininterrumpido, evitando en todo momento que el microcontrolador sufra apagones.
 
-* **Batería B (Tracción de Fuerza Bruta):** 
-  * **Especificaciones:** Batería **LiPo 2S de 7.4V / 7.5V y 2200 mAh** (tasa de descarga de alta corriente).
-  * **Función:** Dedicada **en exclusiva** a la etapa de potencia: el driver dual **ZK-5AD** y los motores de tracción de las ruedas traseras.
-  * **Desglose de Consumos:** 
-    * *Driver ZK-5AD (MOSFET Dual):* Pérdida interna por conmutación y polarización mínima de entre **20 mA y 35 mA**.
-    * *Motorreductores JGA16-130 (Acero templado):* A velocidad de crucero constante consumen entre **250 mA y 450 mA** por canal. Sin embargo, en aceleraciones violentas desde parado o superación de pendientes, cada motor genera picos instantáneos de **más de 1.2A a 1.6A** para vencer la inercia del chasis.
-  * **Autonomía en Escenario Real:** Intercalando aceleraciones, frenadas regenerativas por PWM y maniobras de exploración, la batería LiPo de 2200 mAh está calibrada para ofrecer **2 horas continuas de conducción táctica e intensa a velocidades de hasta 15 km/h**.
+- **Batería B (Tracción Bruta):** 
+  - **Especificaciones:** Batería **LiPo de 7.5V y 2200mAh**.
+  - **Función:** Dedicada **en exclusiva** al controlador de potencia (**ZK-5AD**) y a los motores de tracción de las ruedas (**JGA16 de acero**).
+  - **Desglose de Consumos:** 
+    - *Controlador de potencia:* El propio módulo gestor presenta una pequeña pérdida interna por caída de tensión y conmutación, rondando los **20mA a 35mA** de consumo base.
+    - *Motores de tracción:* A una velocidad de crucero plana y constante, consumen entre **200mA y 400mA** por rueda. Sin embargo, la exigencia real llega en los arranques desde parado o al atascarse contra obstáculos: en esas fracciones de segundo, cada motor exige violentos latigazos de **más de 1A a 1.5A** para vencer la inercia del vehículo.
+  - **Cálculo Realista de Autonomía:** Aunque los motores exigen grandes picos de corriente momentáneos, en un escenario real de conducción (intercalando aceleraciones, maniobras, derrapes y pausas), el consumo medio continuo se estabiliza. Gracias a la eficiencia y a la tasa de descarga de la LiPo de 2200mAh, el sistema está verificado en pista para proporcionar sin problemas unas **2 horas de conducción** pura e intensa a velocidades de hasta 15 km/h.
 
-> **Nota Técnica de Seguridad:** Las líneas de masa (**GND**) de ambas baterías están obligatoriamente unificadas en un único punto común del chasis. Esto es indispensable para establecer la referencia de tensión de 0V que permite al driver ZK-5AD interpretar con precisión los pulsos PWM enviados desde los pines GPIO del ESP32.
-
----
-
-## 2. Componentes Clave del Sistema
-
-| Módulo | Componente Seleccionado | Especificaciones y Función |
-| :--- | :--- | :--- |
-| **Cerebro Principal** | **ESP32 NodeMCU-32S** | Dual-Core Xtensa LX6 (240 MHz). Stack Bluetooth nativo y receptor Wi-Fi UDP. |
-| **Cámara / Visión** | **ESP32-CAM AI-Thinker** | Sensor OV2640. Servidor HTTP MJPEG en tiempo real hacia Taskforce GCS. |
-| **Tracción** | **2x JGA16-130** | Reductora con piñonería íntegra de **acero templado** (torque elevado y cero holguras). |
-| **Driver de Potencia** | **ZK-5AD** | Driver dual MOSFET de hasta 5A por canal con disipación pasiva y control bidireccional PWM. |
-| **Dirección** | **TowerPro MG90S** | Servomotor digital de piñonería metálica (recorrido calibrado: 500–2400 μs en Pin 16). |
-| **Sensor de Color (ONU)**| **Adafruit TCS34725** | Bus I2C, filtro IR integrado y LED blanco para reconocimiento de balizas de salvamento. |
-| **Sensor Magnético (ONU)**| **A3144 (Efecto Hall)** | Detección digital de campos magnéticos y marcadores metálicos en pista. |
-| **Periférico Manual** | **Mando Xbox Series X/S** | Conexión inalámbrica Bluetooth de baja latencia con gatillos progresivos RT/LT. |
-| **Alimentación Tracción**| **Batería LiPo 2S 7.4V (2200 mAh)** | Entrega de alta corriente instantánea para arranques y subidas. |
-| **Alimentación Lógica** | **Pack 18650 (6600 mAh) + Boost 5V** | Suministro filtrado de 5V/3A aislado de los motores. |
+*(Nota Técnica: Las líneas de masa / GND de ambas baterías están obligatoriamente unificadas en el circuito para establecer una referencia común. Esto es indispensable para que los pulsos de señal PWM enviados por el ESP32 sean interpretados correctamente por los drivers del motor).*
 
 ---
 
-## 3. Ingeniería de Chasis 3D: Resiliencia y Zonas de Sacrificio
+## 2. Componentes Principales
 
-El chasis del Prometheus MK-IV ha sido diseñado combinando máxima ligereza con optimizaciones avanzadas de fabricación aditiva para resistir entornos hostiles:
-
-* **Tornillería y Ensamblaje Estructural:** El montaje prescinde totalmente de pegamentos y utiliza tornillería métrica de precisión (**M2, M2.5 y M3**) con tuercas autoblocantes, consolidando las articulaciones mecánicas frente a fuertes vibraciones e impactos repetidos.
-* **Geometría con Relleno Giroide (*Gyroid*):** Para resistir esfuerzos de torsión dinámicos sin añadir peso masivo, todas las piezas estructurales se imprimen con patrón interno **Giroide**. Este patrón matemático distribuye las cargas en tres dimensiones (X, Y, Z), absorbiendo energía cinética de forma isotrópica.
-* **El PLA Llevado al Límite de sus Propiedades:** El chasis está fabricado en **PLA (Poliácido Láctico)** de alta densidad. Lejos de ser un plástico frágil, la ingeniería de nervaduras, redondeos de aristas y orientación de capas permite empujar el PLA hasta el límite absoluto de sus propiedades mecánicas, convirtiéndolo en una solución biodegradable, económica y de alto rendimiento.
-* **Concepto de "Zonas de Sacrificio":** El coche no pretende ser un bloque indestructible. Ante un choque frontal o vuelco a máxima velocidad (15 km/h), las defensas y brazos exteriores están diseñados para flectar y fracturarse deliberadamente. Al romper el plástico impreso (reemplazable por unos céntimos en minutos), se disipa la energía del impacto y se **salvan los componentes críticos: la placa ESP32, los sensores, la cámara y los motores**.
-* **Fabricación en Gran Formato (250 x 250 mm):** La pieza estructural principal del chasis aprovecha la práctica totalidad de una cama de impresión de **250 x 250 mm**, permitiendo fabricar el núcleo del vehículo de una sola pieza monolítica, eliminando puntos de fatiga por ensambles intermedios.
-
----
-
-## 4. Cinemática de Dirección y Dinámica de Control
-
-* **Dirección Cinemática Ackermann Pura:** A diferencia de vehículos de tracción diferencial tipo tanque que destruyen los neumáticos y consumen excesiva energía al girar derrapando, Prometheus integra geometría **Ackermann real**. La rueda interior del giro traza un ángulo más cerrado que la exterior, permitiendo curvas limpias a alta velocidad sin pérdida de tracción.
-* **Aislamiento de Timers PWM en Software:** Para evitar interferencias eléctricas entre la señal PWM de velocidad de los motores (frecuencia de 1 kHz a 5 kHz) y el tren de pulsos del servomotor de dirección (50 Hz), el firmware asigna timers independientes del ESP32, eliminando cualquier temblor (*jitter*) en la dirección.
-* **Mapeo Lineal en Gatillos de Xbox:** Los gatillos RT (acelerador) y LT (freno / marcha atrás) del mando de Xbox Series cuentan con zonas muertas calibradas por software y curvas de aceleración progresivas para permitir tanto maniobras milimétricas a 1 km/h como aceleraciones directas a 15 km/h.
+* **Microcontrolador:** ESP32
+* **Motores de tracción:** 2x JGA16 de acero
+* **Driver de potencia:** ZK-5AD
+* **Servo de dirección:** MG90S
+* **Sensor de color:** Adafruit TCS34725
+* **Sensor magnético:** A3144
+* **Mando de control:** Mando de Xbox (Bluetooth)
+* **Baterías:** Pack 18650 6600mAh (5V) + LiPo 7.5V 2200mAh
 
 ---
 
-## 5. Modularidad Táctica: Ecosistema Taskforce y Remolque Ignis
+## 3. Ingeniería de Chasis 3D
 
-El diseño físico de Prometheus MK-IV integra puntos de anclaje mecánicos en la zaga y en el techo para expandir sus misiones:
+El chasis del Prometheus MK-IV ha sido diseñado combinando máxima dureza con optimizaciones avanzadas de fabricación aditiva para resistir entornos de competición.
 
-1. **Enganche Rápido para Remolque Ignis:** Sistema de pivote esférico reforzado en la parte posterior para remolcar módulos de carga pesada, cajas de herramientas o kits de baterías auxiliares.
-2. **Torreta de Sensores e IA:** Espacio superior previsto para acoplar la ESP32-CAM o el módulo superior de computación (**Arduino UNO Q / Edge AI**) para detección de víctimas y obstáculos.
-3. **Compatibilidad Dual de Enlace:**
-   * **Modo ONU (Directo):** ESP32 emparejado directamente por Bluetooth al mando de Xbox.
-   * **Modo Taskforce (Ignition):** ESP32 enlazado por Wi-Fi UDP (< 2 ms) a la estación **Taskforce GCS**, permitiendo pilotaje FPV con HUD interactivo sobre la pantalla del PC.
+* **Tornillería y Ensamblaje:** El montaje del coche hace uso intensivo de tornillería métrica de precisión (**M2, M2.5 y M3**) para fijar estructuralmente todas las piezas, asegurar los motores y consolidar las articulaciones mecánicas frente a fuertes vibraciones.
+* **Geometría Estructural (Relleno Giroide):** Para soportar la tensión extrema sin añadir un peso masivo, las piezas se imprimen utilizando un patrón de relleno interno **Giroide** (*Gyroid*). Este patrón matemático distribuye la fuerza de forma tridimensional, absorbiendo energía y multiplicando la resistencia mecánica del plástico en todas las direcciones (X, Y, Z).
+* **Material Ecológico Llevado al Límite (PLA):** Todo el chasis y las piezas mecánicas están fabricados exclusivamente en **PLA** (Poliácido Láctico). Esta decisión hace que el coche sea una alternativa **ecológica y biodegradable**. Dado que el PLA es un plástico rígido pero frágil por naturaleza, la ingeniería y geometría de las piezas ha sido calculada al milímetro para empujar el material **hasta el límite absoluto de las propiedades que ofrece**, logrando rendimiento y resistencia de competición utilizando un plástico de origen orgánico.
+* **Impresión con Soportes y Zonas de Sacrificio:** Debido a la complejidad de las piezas mecánicas del vehículo, el diseño requiere el uso de estructuras de soporte durante la impresión 3D. Los grosores de pared, el número de perímetros y la densidad del relleno Giroide no pretenden hacer el coche "indestructible". De hecho, si el coche sufre un impacto directo o un vuelco a la máxima velocidad, las piezas exteriores sí van a partirse y fracturarse. Esto es una brillante decisión de diseño pensada para absorber la energía cinética del choque, sacrificando el plástico impreso (barato y reemplazable) con el fin de **prevenir que los sistemas críticos (la placa ESP32, los motores y la sensórica) reciban daños irreparables**.
+* **Requisitos de Impresión (Gran Formato):** A diferencia de modelos a pequeña escala, Prometheus es un vehículo de gran envergadura. La pieza individual más grande del chasis ocupa la práctica totalidad de una plancha de impresión de **250 x 250 mm**. Por tanto, su fabricación requiere impresoras 3D con un volumen de construcción intermedio o superior, asegurando así que las piezas estructurales más críticas se impriman de una sola pieza, garantizando su integridad sin necesidad de pegamentos ni uniones frágiles.
+
+---
+
+## 4. Dinámica y Manipulación
+
+* **Dirección Ackermann con Servo Independiente:** En lugar de depender exclusivamente de la dirección tipo tanque (derrape diferencial), Prometheus integra geometría Ackermann con un servo central (**MG90S**, Pin 16) que gobierna el ángulo de ataque direccional. Esto permite trazadas mucho más limpias a alta velocidad (RACE MODE).
+* **Aislamiento de Timers PWM:** A nivel de software, los servos de manipulación (Brazo y Compuerta) se han asignado a timers independientes del ESP32 para evitar solapamientos de pulsos eléctricos y asegurar máxima fuerza de sujeción (*Holding Torque*) cuando el coche carga peso estático.
+* **Control Lineal por Gatillos:** Los gatillos del mando de Xbox permiten dosificar la potencia de los motores JGA16 progresivamente para maniobras milimétricas o aceleración instantánea.
