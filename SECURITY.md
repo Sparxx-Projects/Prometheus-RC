@@ -1,19 +1,19 @@
-# 🛡️ Política de Seguridad (Security Policy)
-
+# 🛡️ Política de Seguridad — Prometheus RC & Taskforce
 ## Versiones Soportadas
-
-Este repositorio contiene exclusivamente el código de la última generación del vehículo. Solo esta versión recibe parches de seguridad y optimizaciones.
-
-| Versión del Coche | Estado de Soporte |
-| ------- | ---------------- |
-| **MK-IV** (Única publicada) | :white_check_mark: |
-
-## 🚨 Reportar una Vulnerabilidad
-
-Si descubres algún problema de seguridad en el código, una vulnerabilidad en la conexión Bluetooth del ESP32 (ataques de denegación de servicio, suplantación de mando), o un fallo crítico que comprometa el control físico del vehículo, por favor **NO abras un "Issue" público** en GitHub.
-
-En su lugar, sigue este protocolo:
-*   **Autor responsable:** Ernesto Torregrosa Palacio
-*   **Reporte:** Notifica el problema directamente al desarrollador de forma privada para que el parche de seguridad pueda ser desarrollado antes de que el fallo se haga público.
-
-Trataremos de evaluar, reproducir y solucionar cualquier vulnerabilidad reportada en el código en el menor tiempo posible. ¡Gracias por ayudar a hacer el código de Prometheus más seguro y robusto!
+| Rama / Versión | Módulo | Estado |
+| :--- | :--- | :--- |
+| **Ignition (Taskforce)** | Taskforce GCS (.NET 8 WPF) + GCS Client UDP | :white_check_mark: Soportado |
+| **Classic (ONU)** | Firmware ESP32 Bluetooth (Sensors, Arm, Full RC, Race) | :white_check_mark: Soportado |
+| **Prototipos previos** | Versiones MK-I, MK-II y MK-III | :x: Obsoleto |
+---
+## ⚠️ Protocolos de Seguridad Física y Operativa
+### 1. Failsafe en Modo Taskforce (Wi-Fi UDP)
+* El cliente `PROMETHEUS_GCS_CLIENT.ino` cuenta con temporizador de seguridad: si no recibe paquetes UDP de control desde `Taskforce_GCS.exe` durante más de **300 ms**, los motores de tracción se detienen automáticamente para evitar colisiones por pérdida de señal.
+### 2. Failsafe en Modo Classic / ONU (Bluetooth Directo)
+* El firmware corta inmediatamente la señal de tracción PWM si se pierde el emparejamiento con el mando de Xbox Series.
+### 3. Aislamiento Eléctrico (Protección contra Brownouts)
+* Es obligatorio mantener físicamente separada la línea de alimentación de potencia (batería LiPo para motores) de la alimentación lógica (shield 18650 para el ESP32). Unir ambas en la misma batería sin regulador causará caídas de tensión bruscas que reinician el microcontrolador en plena marcha.
+---
+## 📩 Notificar un fallo de seguridad
+Para reportar vulnerabilidades en los protocolos de desconexión de emergencia o fallos de control:  
+**Ernesto Torregrosa Palacio** (`etpalicante@outlook.com`).
