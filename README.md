@@ -1,26 +1,33 @@
-# 🏎️ Prometheus RC
+# 🏎️ Prometheus RC & Taskforce Ecosystem
 **Creador:** Ernesto Torregrosa Palacio  
 *Estudiante del Grado en Ingeniería Mecánica — UPV Campus d'Alcoi (EPSA) | Exalumno CEU Jesús-María*
 ## 📖 Descripción del Proyecto
-Este repositorio contiene el código fuente oficial para el sistema de control del rover radiocontrol **Prometheus (Versión MK-IV / ONU)** y su ecosistema táctico **Ignition (Taskforce)**. El sistema utiliza un microcontrolador **ESP32** para conectarse de forma nativa a un mando inalámbrico de **Xbox Series X/S o Xbox One** mediante Bluetooth, ofreciendo un control de altísima precisión tanto en operaciones directas sobre el terreno como a través de la estación en tierra.
-
+Este repositorio contiene el ecosistema oficial para el control del UGV radiocontrol **Prometheus**, diseñado tanto para misiones de salvamento sobre el terreno como para operaciones tácticas a distancia. El proyecto se articula en **dos modalidades principales de operación**:
+1. 🌐 **Modalidad Taskforce / Ignition (Control en Tierra por Wi-Fi UDP):** Control remoto mediante estación en PC (**Taskforce GCS**), transmisión de vídeo en directo con HUD y enlace de comandos de bajísima latencia (< 2 ms).
+2. 🦾 **Modalidad Classic / ONU (Operación Autónoma Directa por Bluetooth):** Control directo sobre el vehículo enlazando un mando inalámbrico de **Xbox Series X/S o Xbox One** nativamente al microcontrolador ESP32 sin necesidad de ordenador.
 👉 **[Ver modelo 3D interactivo y piezas en Onshape](https://cad.onshape.com/documents/e0e2690dbaa761d20fdeb4b2/w/a619ad74b4e23a78b4f9217a/e/e99fb4568552d454a36312e6)**
-
-El código base está dividido en módulos independientes dependiendo de la misión a realizar:
-* 🏁 **PROMETHEUS RACE (Versión MK-IV):** Modo de competición y respuesta rápida. Elimina cualquier filtro de suavizado para ofrecer una respuesta 1:1 ultrarrápida entre los gatillos del mando y la potencia de los motores. Diseñado para maximizar la agilidad y velocidad en pista.
-* 📡 **PROMETHEUS SENSORS (Versión MK-IV ONU):** Modo de exploración y salvamento. Integra lectura del entorno mediante sensores (Magnético y sensor de color I2C TCS34725). Incluye rutinas de telemetría por Bluetooth Serial para monitorizar datos del coche en tiempo real.
-* 🦾 **PROMETHEUS ARM (Versión MK-IV):** Modo de manipulación. Diseñado para controlar cargas pesadas (Brazo robótico, Garra y Compuerta). Aísla las señales PWM de tracción de las de los servos para garantizar la máxima estabilidad eléctrica durante tareas de fuerza bruta, e incluye macros automáticas (como secuencias de descarga).
-* 🖥️ **[Taskforce GCS - Versión Ignition](Taskforce_GCS/):** Estación de control en tierra avanzada desarrollada en **C# / .NET 8 (WPF)**. Diseñada para operaciones remotas tácticas de la Taskforce: telemetría en tiempo real, HUD estilo videojuego sobre transmisión de vídeo MJPEG y control directo mediante mando de Xbox Series.
+---
+## 🗂️ Módulos de Software y Firmwares
+### 1. Rama Taskforce (Ignition GCS)
+* 🖥️ **[Taskforce GCS](Taskforce_GCS/):** Estación de control en tierra desarrollada en **C# / .NET 8 (WPF)** con HUD táctico, telemetría bidireccional y soporte de mando de Xbox.
+* 📡 **`PROMETHEUS_GCS_CLIENT.ino`:** Firmware para el ESP32 del vehículo receptor de paquetes de control Wi-Fi UDP y emisor de telemetría hacia el PC.
+* 📷 **`PROMETHEUS_CAM_SERVER.ino`:** Firmware para la cámara AI-Thinker ESP32-CAM para streaming de vídeo MJPEG continuo al HUD de la estación.
+### 2. Rama Classic (Salvamento ONU & Competición)
+* 📡 **`PROMETHEUS_SENSORS.ino` (Versión ONU):** Modo de exploración y salvamento. Lectura en tiempo real de sensor de color I2C TCS34725 y sensor magnético de efecto Hall para detección de balizas.
+* 🦾 **`PROMETHEUS_ARM.ino`:** Modo manipulación para accionamiento seguro de brazo robótico, garra y compuerta de descarga.
+* 🎮 **`PROMETHEUS_FULL_RC.ino`:** Modo radiocontrol completo con mapeo suave de aceleración y dirección.
+* 🏁 **`PROMETHEUS_RACE.ino`:** Modo competición con respuesta 1:1 ultrarrápida sin filtros.
+---
 ## ⚙️ Componentes de Hardware Utilizados
-* **Microcontrolador:** ESP32
-* **Motores de tracción:** 2x JGA16 de acero
-* **Driver de motores:** ZK-5AD
-* **Servo de dirección:** MG90S (Piñonería metálica)
-* **Batería de tracción:** LiPo 7.4V
-* **Alimentación lógica:** Shield de baterías 18650
-* **Periférico de control:** Mando inalámbrico Xbox Series X/S / Xbox One (Bluetooth)
-* **Sensores (Versión SENSORS):** Adafruit TCS34725 (Color I2C) y sensor magnético A3144 (Efecto Hall)
-* **Estación de tierra (GCS):** PC Windows con .NET 8 Runtime
+* **Microcontrolador principal:** ESP32 NodeMCU-32S
+* **Cámara de a bordo (Rama Taskforce):** ESP32-CAM AI-Thinker
+* **Motores de tracción:** 2x JGA16 con caja reductora y piñonería de acero
+* **Driver de potencia:** ZK-5AD (MOSFET dual)
+* **Servo de dirección:** MG90S con piñonería metálica (Geometría Ackermann 3D)
+* **Alimentación de tracción:** Batería LiPo 7.4V (2S)
+* **Alimentación lógica:** Shield de baterías 18650 (5V regulados independientes)
+* **Periférico de control:** Mando inalámbrico original Xbox Series X/S o Xbox One
+* **Sensores (Versión ONU):** Sensor RGB Adafruit TCS34725 y sensor magnético A3144
 ---
 ## ⚖️ Licencia y Condiciones de Uso (CC BY-NC-SA 4.0)
 Este proyecto está registrado y protegido bajo la licencia **Creative Commons Atribución - No Comercial - Compartir Igual 4.0 Internacional**.
